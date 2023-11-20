@@ -18,8 +18,6 @@ unsigned long oldTime = 0;
 MQUnifiedsensor MQ135(board, voltage, ADC_Bit_Resolution, PIN_MQ135, MQ135_TYPE);
 MQUnifiedsensor MQ4(board, voltage, ADC_Bit_Resolution, PIN_MQ4, MQ4_TYPE);
 
-MQ7 mq7(PIN_MQ7, voltage_Resolution)
-
 static Sensor *instance = NULL;
 
 Sensor::Sensor()
@@ -100,11 +98,6 @@ void Sensor::init_MQ135()
     MQ135.serialDebug(true);
 }
 
-void Sensor::init_MQ7()
-{
-    mq7.calibrate();
-}
-
 float Sensor::get_MQ4()
 {
     MQ4.update();
@@ -115,9 +108,4 @@ float Sensor::get_MQ135()
 {
     MQ135.update();
     return MQ135.readSensor();
-}
-
-float Sensor::get_MQ7()
-{
-    return mq7.readPpm();
 }
