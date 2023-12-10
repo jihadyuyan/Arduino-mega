@@ -22,6 +22,7 @@ int sensorValues[3];
 void sensor_init();
 void fuzzy_logic_init();
 void show_lcd(int x, int y, int sz, const GFXfont *f, String message);
+void onRequest();
 
 void setup()
 {
