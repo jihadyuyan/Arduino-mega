@@ -35,7 +35,7 @@ private:
 public:
     FuzzyLogic(/* args */);
     void fuzzy_init();
-    void fuzzy_compute(float nh3, float ch4, float co);
+    float fuzzy_compute(float nh3, float ch4, float co);
 };
 
 #endif
