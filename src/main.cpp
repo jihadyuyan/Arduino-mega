@@ -17,6 +17,8 @@ MCUFRIEND_kbv tft(LCD_CS, LCD_RS, LCD_WR, LCD_RD, LCD_RST);
 FuzzyLogic *fuzzyLogic;
 Sensor *sensor;
 
+int sensorValues[3];
+
 void sensor_init();
 void fuzzy_logic_init();
 void show_lcd(int x, int y, int sz, const GFXfont *f, String message);
@@ -24,6 +26,7 @@ void show_lcd(int x, int y, int sz, const GFXfont *f, String message);
 void setup()
 {
   Serial.begin(115200);
+  Wire.begin();
   sensor_init();
   fuzzy_logic_init();
 
@@ -49,7 +52,22 @@ void loop()
   float output = fuzzyLogic->fuzzy_compute(nh3, ch4, co);
   show_lcd(100, 200, 1, &FreeSans9pt7b, "NH3: " + String(nh3)); // Convert nh3 to a string
 
+  sensorValues[0] = nh3;
+  sensorValues[1] = ch4;
+  sensorValues[2] = co;
+
+  Wire.onRequest(onRequest);
+
   delay(5000);
+}
+
+void onRequest()
+{
+  uint8_t Buffer[3];
+  Buffer[0] = sensorValues[0];
+  Buffer[1] = sensorValues[1];
+  Buffer[2] = sensorValues[2];
+  Wire.write(Buffer, 3);
 }
 
 void sensor_init()
