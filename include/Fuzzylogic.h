@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <Fuzzy.h>
 
-class FuzzyLogic
+class FuzzyLogic 
 {
 private:
     /* data */
