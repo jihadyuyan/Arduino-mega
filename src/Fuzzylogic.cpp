@@ -342,7 +342,7 @@ void FuzzyLogic::fuzzy_init()
     fuzzy_set_rule();
 }
 
-void FuzzyLogic::fuzzy_compute(float nh3, float ch4, float co)
+float FuzzyLogic::fuzzy_compute(float nh3, float ch4, float co)
 {
     fuzzy->setInput(1, nh3);
     fuzzy->setInput(2, ch4);
@@ -377,5 +377,6 @@ void FuzzyLogic::fuzzy_compute(float nh3, float ch4, float co)
     Serial.println("\tResult: ");
     Serial.print("\t\t\tRisk : ");
     Serial.println(output);
-    Serial.println();
+    Serial.println();    
+    return output;
 }

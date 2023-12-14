@@ -1,24 +1,26 @@
 #include "Sensor.h"
 
-#define board "ESP32"
-#define voltage 3.3
+// #define board "ESP32"
+#define board "Arduino Mega"
+#define voltage 5
 #define voltage_Resolution 5
-#define ADC_Bit_Resolution 12
+#define ADC_Bit_Resolution 10
 #define MQ4_TYPE "MQ-4"
 #define MQ135_TYPE "MQ-135"
 #define MQ7_TYPE "MQ-7"
 #define RatioMQ4CleanAir 4.4
 #define RatioMQ135CleanAir 3.6
-#define PIN_MQ4 25
-#define PIN_MQ135 26
-#define PIN_MQ7 33
+#define RatioMQ7CleanAir 27.5
+#define PIN_MQ4 A13
+#define PIN_MQ135 A14
+#define PIN_MQ7 A15
 
 unsigned long oldTime = 0;
 
 MQUnifiedsensor MQ135(board, voltage, ADC_Bit_Resolution, PIN_MQ135, MQ135_TYPE);
 MQUnifiedsensor MQ4(board, voltage, ADC_Bit_Resolution, PIN_MQ4, MQ4_TYPE);
-
-MQ7 mq7(PIN_MQ7, voltage_Resolution)
+MQUnifiedsensor MQ7(board, voltage, ADC_Bit_Resolution, PIN_MQ7, MQ7_TYPE);
+// MQ7 mq7(PIN_MQ7, voltage_Resolution);
 
 static Sensor *instance = NULL;
 
@@ -100,9 +102,42 @@ void Sensor::init_MQ135()
     MQ135.serialDebug(true);
 }
 
-void Sensor::init_MQ7()
-{
-    mq7.calibrate();
+// void Sensor::init_MQ7()
+// {
+//     MQ7.calibrate();
+// }
+void Sensor::init_MQ7(){
+    MQ7.setRegressionMethod(1); // Use Least Squares Method for calculating slope and y-intercept.
+    MQ7.setA(99.042);            // Configure the ecuation to get NH4 concentration.
+    MQ7.setB(-1.518);           // Configure the ecuation to get NH4 concentration.
+
+    MQ7.init(); // Initialize the sensor.
+
+    Serial.print("Calibrating please wait.");
+    float calcR0 = 0;
+    for (int i = 1; i <= 10; i++)
+    {
+        MQ7.update(); // Update data, the arduino will read the voltage from the analog pin
+        calcR0 += MQ7.calibrate(RatioMQ7CleanAir);
+        Serial.print(".");
+    }
+    MQ7.setR0(calcR0 / 10);
+    Serial.println("  done!.");
+
+    if (isinf(calcR0))
+    {
+        Serial.println("Warning: Conection issue, R0 is infinite (Open circuit detected) please check your wiring and supply");
+        while (1)
+            ;
+    }
+    if (calcR0 == 0)
+    {
+        Serial.println("Warning: Conection issue found, R0 is zero (Analog pin shorts to ground) please check your wiring and supply");
+        while (1)
+            ;
+    }
+    /*****************************  MQ CAlibration ********************************************/
+    MQ7.serialDebug(true);
 }
 
 float Sensor::get_MQ4()
@@ -117,7 +152,12 @@ float Sensor::get_MQ135()
     return MQ135.readSensor();
 }
 
+// float Sensor::get_MQ7()
+// {
+//     return MQ7.readPpm();
+// }
 float Sensor::get_MQ7()
 {
-    return mq7.readPpm();
+    MQ7.update();
+    return MQ7.readSensor();
 }
