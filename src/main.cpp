@@ -3,6 +3,16 @@
 #include <FuzzyLogic.h>
 #include <TFTLcd.h>
 #include <SoftwareSerial.h>
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+#include <avr/power.h> 
+#endif
+
+#define PIN        42
+#define NUMPIXELS 8 
+Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+#define DELAYVAL 500 
 
 TFTLcd TFT;
 
@@ -34,16 +44,18 @@ void setup()
   Serial.begin(9600);
   SendToESP.begin(9600);
   TFT.init();
+  pixels.begin();
 
   // network_init();
   sensor_init();
   fuzzy_logic_init();
+
 }
 
 void loop()
 {
   // put your main code here, to run repeatedly:
-
+  pixels.clear(); 
   float nh3 = sensor->get_MQ135();
   float ch4 = sensor->get_MQ4();
   float co = sensor->get_MQ7();
@@ -56,14 +68,25 @@ void loop()
   Serial.println(co);
   float nilaiFuzzy = fuzzyLogic->fuzzy_compute(nh3, ch4, co);
   if (nilaiFuzzy <= 50){
-    statusKadarGas = "Normal";
+    statusKadarGas = "Normal"; 
+    for (int i = 0; i < NUMPIXELS; i++) { 
+    pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+    pixels.show();  
+    delay(100);
+  }
   }
   else if (nilaiFuzzy > 50 && nilaiFuzzy >= 100){
     statusKadarGas = "Bahaya";
-  }
+    for (int i = 0; i < NUMPIXELS; i++) { 
+    pixels.setPixelColor(i, pixels.Color(0, 255, 0));
+    pixels.show();
+  }}
   else{
     statusKadarGas = "Sangat Bahaya";
-  }
+    for (int i = 0; i < NUMPIXELS; i++) { 
+    pixels.setPixelColor(i, pixels.Color(255, 0, 0));
+    pixels.show();
+  }}
   
   String data = (String)nh3 + "," + (String)ch4  + "," + (String)co  + "," + (String)statusKadarGas;
   TFT.showmsgXY(nh3,ch4,co,statusKadarGas.c_str());
@@ -88,28 +111,3 @@ void fuzzy_logic_init()
   fuzzyLogic = new FuzzyLogic();
   fuzzyLogic->fuzzy_init();
 }
-
-// #include <Adafruit_NeoPixel.h>
-// #ifdef __AVR__
-// #include <avr/power.h> 
-// #endif
-
-// #define PIN        15 
-// #define NUMPIXELS 8 
-// Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-
-// #define DELAYVAL 500 
-
-// void setup() {
-  
-//   pixels.begin();
-// }
-
-// void loop() {
-
-//   pixels.clear(); 
-//   for (int i = 0; i < NUMPIXELS; i++) { 
-//     pixels.setPixelColor(i, pixels.Color(0, 255, 0));
-//     pixels.show();   
-//   }
-// }
